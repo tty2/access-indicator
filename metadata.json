@@ -1,0 +1,8 @@
+{
+  "name": "Access Indicator",
+  "description": "Access Indicator helps you to know if any application uses your webcam or mic.",
+  "uuid": "access-indicatio@tty2.io",
+  "shell-version": [
+    "41"
+  ]
+}
