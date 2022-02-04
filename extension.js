@@ -1,30 +1,39 @@
 const Main = imports.ui.main;
+const Gvc = imports.gi.Gvc;
 
 class Extension {
     constructor(uuid) {
         this._uuid = uuid;
-        this._indicator = Main.panel.statusArea.dateMenu._indicator;
+        
+        // devices to observe
+        this.mic = 0;
+        this.camera = 0;
 
+        // indicator
+        this.indicator = Main.panel.statusArea.dateMenu._indicator;
         this.originalStyle = this.indicator.style;
         this.customStyle = 'color: #3ade85;';
-        this._devices = {'camera': 0, 'mic': 0};
+
+        // sound mixer
+        this.mixer_control = new Gvc.MixerControl({ name: "sound access indicator" });
+        this.mixer_control.open();
+        this.mixer_control.connect("state-changed", this._mic_state_changed);
     }
 
-    _unobserve(observable) {
-        this.observers = this.observers.filter(function (observer) {
-           return observer.observable !== observable;
-        });
+    _mic_state_changed(state) {
+        this.mic = state
+        this._updateCount()
     }
 
     _updateCount() {
-        let count = this._devices.camera + this._devices.mic;
+        let count = this.camera + this.mic;
         if (count > 0) {
-            this._indicator._count += count;
-            this._indicator.style = this.customStyle;
-            this._indicator.visible = true
+            this.indicator._count += count;
+            this.indicator.style = this.customStyle;
+            this.indicator.visible = true
         } else {
-            this._indicator.style = this.originalStyle;
-            this._indicator._updateCount();
+            this.indicator.style = this.originalStyle;
+            this.indicator._updateCount();
         }
     }
 
@@ -33,8 +42,8 @@ class Extension {
     }
 
     destroy() {
-        this._indicator.style = this.originalStyle;
-        this._indicator._sync();
+        this.indicator.style = this.originalStyle;
+        this.indicator._sync();
     }
 }
 
