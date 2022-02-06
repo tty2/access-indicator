@@ -20,7 +20,7 @@ class Extension {
         this.mixer_control.connect("state-changed", this._mic_state_changed);
     }
 
-    _mic_state_changed(state) {
+    _mic_state_changed(this, state) {
         this.mic = state
         this._updateCount()
     }
