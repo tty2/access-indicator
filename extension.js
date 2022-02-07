@@ -21,7 +21,11 @@ class AccessIndicator extends St.Widget {
             // // sound mixer
             this.mixer_control = new Gvc.MixerControl({ name: "sound access indicator" });
             this.mixer_control.open();
+            this.mixer_control.connect('default-source-changed', this._mic_state_changed.bind(this));
+            this.mixer_control.connect('stream-added', this._mic_state_changed.bind(this));
+            this.mixer_control.connect('stream-removed', this._mic_state_changed.bind(this));
             this.mixer_control.connect("state-changed", this._mic_state_changed);
+            this.stream = this.mixer_control.get_default_source();
         }
 
         _onDestroy() {

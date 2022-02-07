@@ -11,7 +11,8 @@ dbus-run-session -- gnome-shell --nested --wayland
 
 full: ## Run session to debug.
 	env MUTTER_DEBUG_DUMMY_MODE_SPECS=3840x2160 \
-dbus-run-session -- gnome-shell --nested --wayland
+	MUTTER_DEBUG_DUMMY_MONITOR_SCALES=2 \
+	dbus-run-session -- gnome-shell --nested --wayland
 
 install: ## Copy to extensions directory for debug.
 	cp -r * ~/.local/share/gnome-shell/extensions/access-indicatio@tty2.io
