@@ -1,69 +1,60 @@
-const { GObject, St, Gio, Clutter } = imports.gi;
-
+const { St, GObject } = imports.gi;
 const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
+const Gvc = imports.gi.Gvc;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+let AccessIndicator = GObject.registerClass(
+class AccessIndicator extends St.Widget {
+        _init() {
+            super._init({ name: 'Access indicator', reactive: true });
+            
+            // indicator
+            this.indicator = Main.panel.statusArea.dateMenu._indicator;
+            this.originalStyle = this.indicator.style;
+            this.customStyle = 'color: #3ade85;';
+            // // sound mixer
+            this.mixer_control = new Gvc.MixerControl({ name: "sound access indicator" });
+            this.mixer_control.connect('stream-added', this._show_access_indicator.bind(this));
+            this.mixer_control.connect('stream-removed', this._hide_access_indicator.bind(this));
+            this.mixer_control.open();
+            this.active = false;
 
-const Indicator = GObject.registerClass(
-class Indicator extends PanelMenu.Button {
-    _init() {
-        super._init(0.0, _('Access Indicator'));
+        }
 
-        // this._icon = new St.Icon()
-        // this.add_child(this._icon);
+        _onDestroy() {
+            super._onDestroy();
+        }
 
-        this._MicIcon = new St.Icon({
-            gicon: Gio.icon_new_for_string(`${Me.path}/assets/mic.svg`),
-            // style_class: 'system-status-icon',
-            // x_align: St.Align.MIDDLE,
-        });
-        this.add_child(this._MicIcon)
+        _show_access_indicator(obj) {
+            log(obj)
+            this.active = true;
+            this.indicator.style = this.customStyle;
+            this.indicator.visible = true;
+        }
 
-        // this._setIcon();
-        // this._statusLabel = new St.Label({
-        //     style_class: "access-indicator-icon",
-        //     text: "🞄",
-        //     // x_expand: true,
-        //     y_align: Clutter.ActorAlign.START,
-        // });
-        // this.add_child(this._statusLabel);
+        _hide_access_indicator(obj) {
+            log(obj)
+            this.active = false;
+            this.indicator.style = this.originalStyle;
 
-        // this._icon = new St.Icon({
-        //     style_class: 'system-status-icon circle'
-        // })
-        // this.add_child(this._icon)
+            // don't just set indicator visible = false, but call
+            // parent._updateCount in order give it to make a decision
+            // whether the notification indicator must be shown or not
+            this.indicator._updateCount();
+        }
 
-
-        // this._camIcon = new St.Icon({
-        //     gicon: Gio.icon_new_for_string(`${Me.path}/assets/camera.svg`),
-        //     style_class: 'system-status-icon'
-        // });
-        // this.add_child(this._camIcon);
-
-        let item = new PopupMenu.PopupMenuItem(_('Show Notification'));
-        item.connect('activate', () => {
-            Main.notify(_("What's up, folks?"));
-        });
-        this.menu.addMenuItem(item);
-    }
-
-    _setIcon() {
-        this._icon = this._MicIcon
-    }
+        _updateCount() {
+            if (!this.active) {
+                this.indicator._updateCount();
+            }
+        }
 });
 
 class Extension {
-    constructor(uuid) {
-        this._uuid = uuid;
+    constructor() {
     }
 
     enable() {
-        this._indicator = new Indicator();
-        Main.panel.addToStatusArea(this._uuid, this._indicator);
-        // Main.panel._addToPanelBox(this._uuid, this._indicator, -1, Main.panel._centerBox);
+        this._indicator = new AccessIndicator();
     }
 
     disable() {
@@ -72,6 +63,6 @@ class Extension {
     }
 }
 
-function init(meta) {
-    return new Extension(meta.uuid);
+function init() {
+    return new Extension();
 }
